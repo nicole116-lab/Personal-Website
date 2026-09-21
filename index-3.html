@@ -648,16 +648,22 @@ In my first year at IDM, I hope to find the direction I'm genuinely interested i
     });
   });
 
-  // deep-link on load — lets a link like yoursite.com/#project-my-poster-project
-  // open straight to that project's detail page, and #previous / #classwork
-  // still open straight to those sections.
-  const initial = window.location.hash.replace('#', '');
-  if (initial.startsWith('project-')) {
-    const id = initial.replace('project-', '');
-    if (allProjects[id]) showProject(id);
-  } else if (['about', 'previous', 'classwork'].includes(initial)) {
-    showView(initial);
+  // deep-link resolver — figures out what to show based on the URL's
+  // hash. Runs once on page load, AND every time the hash changes
+  // (which is what makes clicking an <a href="#project-..."> link
+  // actually navigate, instead of just silently changing the URL).
+  function resolveHash() {
+    const current = window.location.hash.replace('#', '');
+    if (current.startsWith('project-')) {
+      const id = current.replace('project-', '');
+      if (allProjects[id]) showProject(id);
+    } else if (['about', 'previous', 'classwork'].includes(current)) {
+      showView(current);
+    }
   }
+
+  window.addEventListener('hashchange', resolveHash);
+  resolveHash();
 
   document.getElementById('year').textContent = new Date().getFullYear();
 </script>
