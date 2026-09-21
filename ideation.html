@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ideation & Prototyping — Qinyuan Zhou</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="shell">
+
+  <header class="top">
+    <div class="wordmark">
+      Ideation &amp; Prototyping
+      <span>Qinyuan Zhou · Nicole · MS, Integrated Digital Media, NYU</span>
+    </div>
+    <nav>
+      <a href="index.html" class="entry-link">← Full portfolio site</a>
+    </nav>
+  </header>
+
+  <!-- LIST VIEW -->
+  <section id="list-view" class="view active">
+    <h1 class="page-title">Ideation &amp; Prototyping</h1>
+    <p class="subview-intro">
+      Work from Ideation &amp; Prototyping — early-stage concepting, sketching, and rapid physical or digital prototypes.
+      This page is a standalone entry point for this one class; it shares the same project data as
+      <a href="index.html#classwork" class="inline-entry-link">the main site</a>, so anything added there shows up here automatically.
+    </p>
+    <div id="ideation-list" class="work-list"></div>
+  </section>
+
+  <!-- PROJECT DETAIL (hidden until a project card is clicked) -->
+  <section id="detail" class="view">
+    <button class="back-btn" id="backBtn">← Back</button>
+    <div class="detail-meta">
+      <span id="detail-tag"></span>
+      <span id="detail-year"></span>
+    </div>
+    <h1 class="page-title" id="detail-title"></h1>
+    <div class="detail-desc" id="detail-desc"></div>
+    <div class="detail-images" id="detail-images"></div>
+    <a id="detail-link" class="detail-link" target="_blank" rel="noopener">View external link →</a>
+  </section>
+
+  <footer>
+    <span>Qinyuan Zhou (Nicole) — NYU IDM</span>
+    <span id="year"></span>
+  </footer>
+
+</div>
+
+<!--
+  data.js is the SAME file index.html uses. Editing a project there
+  (year, title, desc, images, link...) updates this page too — nothing
+  to keep in sync by hand.
+-->
+<script src="data.js"></script>
+<script>
+  // ============================================================
+  // This page only ever renders classWork.ideation — the rendering
+  // and detail-view logic below is a trimmed copy of index.html's,
+  // scoped to just this one list.
+  // ============================================================
+
+  function renderList(containerId, items, emptyMessage) {
+    const el = document.getElementById(containerId);
+    if (!items || items.length === 0) {
+      el.innerHTML = `<div class="empty-note">${emptyMessage}</div>`;
+      return;
+    }
+    el.innerHTML = items.map(item => `
+      <div class="work-item" data-id="${item.id}">
+        <div class="work-year">${item.year || ""}</div>
+        <div>
+          <h3 class="work-title">${item.title}</h3>
+          <p class="work-desc">${item.desc || ""}</p>
+          ${item.tag ? `<span class="work-tag">${item.tag}</span>` : ""}
+        </div>
+      </div>
+    `).join("");
+  }
+
+  renderList("ideation-list", classWork.ideation, "No projects added yet. As assignments come in, add each one to the classWork.ideation list in data.js.");
+
+  function showProject(id) {
+    const p = allProjects[id];
+    // safety check: only ever show a project that actually belongs
+    // to the ideation list on this page
+    if (!p || !classWork.ideation.some(item => item.id === id)) {
+      showList();
+      return;
+    }
+
+    document.getElementById("detail-tag").textContent = p.tag || "";
+    document.getElementById("detail-year").textContent = p.year || "";
+    document.getElementById("detail-title").textContent = p.title || "";
+
+    const raw = p.fullDesc || p.desc || "";
+    const paragraphs = Array.isArray(raw) ? raw : raw.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
+    document.getElementById("detail-desc").innerHTML = paragraphs.map(para => `<p>${para}</p>`).join("");
+
+    const imagesEl = document.getElementById("detail-images");
+    imagesEl.innerHTML = (p.images || []).map(src => `<img src="${src}" alt="${p.title}">`).join("");
+
+    const linkEl = document.getElementById("detail-link");
+    if (p.link) {
+      linkEl.href = p.link;
+      linkEl.style.display = "inline-block";
+    } else {
+      linkEl.style.display = "none";
+    }
+
+    document.getElementById("list-view").classList.remove("active");
+    document.getElementById("detail").classList.add("active");
+    window.location.hash = "project-" + id;
+    window.scrollTo(0, 0);
+  }
+
+  function showList() {
+    document.getElementById("detail").classList.remove("active");
+    document.getElementById("list-view").classList.add("active");
+    if (window.location.hash) window.location.hash = "";
+  }
+
+  document.addEventListener("click", (e) => {
+    const card = e.target.closest(".work-item");
+    if (card) showProject(card.dataset.id);
+  });
+
+  document.getElementById("backBtn").addEventListener("click", showList);
+
+  // deep-link resolver: opening ideation.html#project-some-id lands
+  // directly on that project's detail page
+  function resolveHash() {
+    const current = window.location.hash.replace('#', '');
+    if (current.startsWith('project-')) {
+      showProject(current.replace('project-', ''));
+    } else {
+      showList();
+    }
+  }
+  window.addEventListener('hashchange', resolveHash);
+  resolveHash();
+
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+
+</body>
+</html>
